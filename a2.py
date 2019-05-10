@@ -91,7 +91,7 @@ def generate_cuboid_stl(x, y, z):
   return cuboid_stl
 
 def calculate_vertices(r):
-  side_num = 6  # Seitenanzahl
+  side_num = 25  # Seitenanzahl
   start_angle = 0  # Startwinkel
   i = 0
   xs = []
@@ -107,9 +107,18 @@ def calculate_vertices(r):
 
 def generate_cylinder_stl(r, h):
   cylinder_stl = "solid cylinder\n"
+
   xs, ys = calculate_vertices(r)
-  for n in range(len(xs)):
-    cylinder_stl += f"{xs[n]}, {ys[n]}\n"
+  v = len(xs)
+  for p in range(v):
+    cylinder_stl += "  facet normal 0 0 0\n"
+    cylinder_stl += "    outer loop\n"
+    cylinder_stl +=f"      vertex   {0} {0} {h}\n"
+    cylinder_stl +=f"      vertex   {xs[p]} {ys[p]} {h}\n"
+    cylinder_stl +=f"      vertex   {xs[(p+1) % v]} {ys[(p+1) % v]} {h}\n"
+    cylinder_stl += "    endloop\n"
+    cylinder_stl += "  endfacet\n"
+    
   cylinder_stl += "endsolid cylinder\n"
   return cylinder_stl
 
