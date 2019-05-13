@@ -90,8 +90,8 @@ def generate_cuboid_stl(x, y, z):
   endsolid cuboid"""
   return cuboid_stl
 
-def calculate_vertices(r):
-  side_num = 25  # Seitenanzahl
+def calculate_vertices(s, r):
+  side_num = s  # Seitenanzahl
   start_angle = 0  # Startwinkel
   i = 0
   xs = []
@@ -105,20 +105,31 @@ def calculate_vertices(r):
     i += 1
   return xs, ys
 
-def generate_cylinder_stl(r, h):
-  cylinder_stl = "solid cylinder\n"
-
-  xs, ys = calculate_vertices(r)
+def generate_triangles(xs, ys, h):
+  h = h/2  # to draw it centered
   v = len(xs)
+  triangles = []
+  # top/bottom
   for p in range(v):
+    triangles.append([[0, 0, h], [xs[p], ys[p], h], [xs[(p+1) % v], ys[(p+1) % v], h]])
+    triangles.append([[0, 0, -h], [xs[p], ys[p], -h], [xs[(p+1) % v], ys[(p+1) % v], -h]])
+  # side
+  for p in range(v):
+    triangles.append([[xs[p], ys[p], h], [xs[(p+1) % v], ys[(p+1) % v], h], [xs[p], ys[p], -h]])
+    triangles.append([[xs[p], ys[p], -h], [xs[(p+1) % v], ys[(p+1) % v], -h], [xs[(p+1) % v], ys[(p+1) % v], h]])
+  return triangles
+
+def generate_cylinder_stl(r, h, s):
+  cylinder_stl = "solid cylinder\n"
+  xs, ys = calculate_vertices(s, r)
+  triangles = generate_triangles(xs, ys, h)
+  for triangle in triangles:
     cylinder_stl += "  facet normal 0 0 0\n"
     cylinder_stl += "    outer loop\n"
-    cylinder_stl +=f"      vertex   {0} {0} {h}\n"
-    cylinder_stl +=f"      vertex   {xs[p]} {ys[p]} {h}\n"
-    cylinder_stl +=f"      vertex   {xs[(p+1) % v]} {ys[(p+1) % v]} {h}\n"
+    for p in triangle:
+      cylinder_stl +=f"      vertex {p[0]} {p[1]} {p[2]}\n"
     cylinder_stl += "    endloop\n"
     cylinder_stl += "  endfacet\n"
-    
   cylinder_stl += "endsolid cylinder\n"
   return cylinder_stl
 
@@ -143,7 +154,9 @@ if __name__ == "__main__":
       r = int(input())
       print("Höhe h:")
       h = int(input())
-      output = generate_cylinder_stl(r, h)
+      print("Seitenflaechen s:")
+      s = int(input())
+      output = generate_cylinder_stl(r, h, s)
       
   with open("stl_output.stl", "w") as f:
     f.write(output)
